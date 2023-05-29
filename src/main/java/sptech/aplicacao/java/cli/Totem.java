@@ -16,6 +16,12 @@ public class Totem {
     private Integer alertaRam;
     private String disco;
     private Integer alertaDisco;
+    
+    public static Double formatar(String teste) {
+        String numberString = teste.replaceAll("[^\\d,.]", "");
+        Double number = Double.parseDouble(numberString.replace(",", "."));
+        return number;
+    }
 
     public String getNumeroSocial() {
         return numeroSocial;
@@ -72,6 +78,9 @@ public class Totem {
     public void setAlertaDisco(Integer alertaDisco) {
         this.alertaDisco = alertaDisco;
     }
-    
-    
+
+    @Override
+    public String toString() {
+        return "Totem{" + "numeroSocial=" + numeroSocial + ", processador=" + processador + ", alertaProcessador=" + alertaProcessador + ", ram=" + ram + ", alertaRam=" + alertaRam + ", disco=" + disco + ", alertaDisco=" + alertaDisco + '}';
+    }    
 }

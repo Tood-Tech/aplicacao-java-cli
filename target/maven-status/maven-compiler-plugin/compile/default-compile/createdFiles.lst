@@ -1,4 +1,9 @@
 sptech\aplicacao\java\cli\Usuario.class
-sptech\aplicacao\java\cli\Main.class
+sptech\aplicacao\java\cli\slacks\Slack.class
+sptech\aplicacao\java\cli\Main$2.class
 sptech\aplicacao\java\cli\MySql.class
+sptech\aplicacao\java\cli\Main.class
+sptech\aplicacao\java\cli\Main$1.class
+sptech\aplicacao\java\cli\slacks\App.class
 sptech\aplicacao\java\cli\SqlServer.class
+sptech\aplicacao\java\cli\Totem.class

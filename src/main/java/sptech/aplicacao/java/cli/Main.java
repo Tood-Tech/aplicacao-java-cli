@@ -152,18 +152,18 @@ public class Main {
             @Override
             public void run() {
                 // RAM Falta Porcentagem
-                Double ramEmUso = Totem.formatar(formatarBytes(memoria.getEmUso()));
+//                Double ramEmUso = Totem.formatar(formatarBytes(memoria.getEmUso()));
 
                 // aq Oh
                 String ram = formatarBytes(memoria.getEmUso());
 
                 // Disco Falta Porcentagem // armazenamento usando
-               Double volumeEmUso = Totem.formatar(formatarBytes(volume.getTotal())) - Totem.formatar(formatarBytes(volume.getDisponivel()));
+//               Double volumeEmUso = Totem.formatar(formatarBytes(volume.getTotal())) - Totem.formatar(formatarBytes(volume.getDisponivel()));
                 Long volumeEmUsoLong = volume.getTotal() - volume.getDisponivel();
                 String volumeString = formatarBytes(volumeEmUsoLong);
 
                 // Processador Já vem em porcentagem
-                Double cpuEmUso = processador.getUso();
+//                Double cpuEmUso = processador.getUso();
 
                 // tirar dps talvez
                 long totalBytesRecebidos = redeInterfaces.stream()
@@ -181,27 +181,8 @@ public class Main {
                     Double ramGigas = Utils.formatarRamMibEmGib(ram);
                     
                     Double ramPorcentagem = ramGigas * 100 / 8;
-                    Double volumePorcentagem = volumeEmUsoLong * 100 / 238.0;
-                    
-//                    System.out.println("recebido byte " + formatarBytes(totalBytesRecebidos) + " pacote " + formatarBytes(totalBytesEnviados));
-//                    System.out.println("Ram mandado¨%s".formatted(formatarBytes(memoria.getEmUso())));
-//                    System.out.println("Ram em gigas %.2f".formatted(ramGigas));
-//                    System.out.println("Porcentagem %.2f".formatted(ramPorcentagem));
-//                    System.out.println("Volume porcentagem %.2f".formatted(volumePorcentagem));
-//                    System.out.println("Volume usado: %s".formatted(volumeEmUsoLong));
-//                    System.out.println("Volume usado %s".formatted(volumeString));
-//                    System.out.println("Volume porcentagem %.2f".formatted(Utils.formatarArmazenamento(volumeString)));
-//                    System.out.println("To vendo a ram %.2f".formatted(Utils.formatarRam(ram)));
-//                    System.out.println("Ram pegando %.2f porcentagem".formatted(ramPorcentagem));
-//                    System.out.println("Ram de verdade %s".formatted(Utils.formatarRamMibEmGib(formatarBytes(memoria.getEmUso()))));
-//                    System.out.println("Ram em gigas %s".formatted(ramEmUso));
-//                    System.out.println("cpu porcentagem %.2f".formatted(processador.getUso()));
-//                    System.out.println("Volume porcentagem %.2f volume pego %s".formatted(Utils.formatarArmazenamento(volumeString), volumeString));
+//                    Double volumePorcentagem = volumeEmUsoLong * 100 / 30.0;
 
-//                    System.out.println("Ram: %.2f porcentagem: %.2f , Disco: %.2f , CPU: %.2f".formatted(ramEmUso, ramPorcentagem, volumeEmUso, cpuEmUso));
-
-
-                    // RAM OK 000000000000000000000000000000000000000000
                     System.out.println("Porcentagem da Ram %.2f".formatted(ramPorcentagem));
                     System.out.println("Ram usada: %.2f".formatted(ramGigas));
                     

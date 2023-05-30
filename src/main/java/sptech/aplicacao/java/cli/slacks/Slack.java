@@ -26,8 +26,8 @@ public class Slack {
                 .build();
 
         HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-        System.out.println(String.format("Status: %s"
-                + "\nResponse: %s",
+        System.out.println(String.format("\nStatus: %s"
+                + "\nResponse: %s\n",
                 response.statusCode(),
                 response.body()));
 

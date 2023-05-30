@@ -45,7 +45,7 @@ public class Utils {
         if (unidade.equalsIgnoreCase("MiB")) {
             memoriaTotal = 1024 * 8; // Total de memória em MiB
         } else if (unidade.equalsIgnoreCase("GiB")) {
-            memoriaTotal = 9.9; // Total de memória em GiB
+            memoriaTotal = 8.0; // Total de memória em GiB
         } else {
             throw new IllegalArgumentException("Unidade de memória inválida. Utilize 'MiB' ou 'GiB'.");
         }
@@ -93,7 +93,7 @@ public class Utils {
         if (unidade.equalsIgnoreCase("MiB")) {
             armazenamentoTotal = 30 * 1024; // Total de armazenamento em MiB (30 GiB)
         } else if (unidade.equalsIgnoreCase("GiB")) {
-            armazenamentoTotal = 238; // Total de armazenamento em GiB
+            armazenamentoTotal = 30; // Total de armazenamento em GiB
         } else {
             throw new IllegalArgumentException("Unidade de armazenamento inválida. Utilize 'MiB' ou 'GiB'.");
         }

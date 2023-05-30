@@ -48,6 +48,9 @@ public class Main {
         // Gatilho para pegar quando ele encerrar o diacho do runTime
         Runtime.getRuntime().addShutdownHook(new Thread() {
             public void run() {
+                SqlServer conexao = new SqlServer();
+                JdbcTemplate conNuvem = conexao.getConexaoDoBanco();
+                conNuvem.update("update [dbo].[Totem] set ativo = 'false' where idTotem = ?;", idTotem);
                 json.put("text", "%s - Programa foi encerrado no totem %s.".formatted(Utils.obterDataFormatada(), idTotem));
                 try {
                     Slack.sendMessage(json);
@@ -151,12 +154,18 @@ public class Main {
                 // RAM Falta Porcentagem
                 Double ramEmUso = Totem.formatar(formatarBytes(memoria.getEmUso()));
 
+                // aq Oh
+                String ram = formatarBytes(memoria.getEmUso());
+
                 // Disco Falta Porcentagem // armazenamento usando
-                Double volumeEmUso = Totem.formatar(formatarBytes(volume.getTotal())) - Totem.formatar(formatarBytes(volume.getDisponivel()));
+               Double volumeEmUso = Totem.formatar(formatarBytes(volume.getTotal())) - Totem.formatar(formatarBytes(volume.getDisponivel()));
+                Long volumeEmUsoLong = volume.getTotal() - volume.getDisponivel();
+                String volumeString = formatarBytes(volumeEmUsoLong);
 
                 // Processador Já vem em porcentagem
                 Double cpuEmUso = processador.getUso();
 
+                // tirar dps talvez
                 long totalBytesRecebidos = redeInterfaces.stream()
                         .mapToLong(RedeInterface::getBytesRecebidos)
                         .sum();
@@ -169,22 +178,49 @@ public class Main {
                 //SLACK
                 try {
 
-                    Double ramPorcentagem = ramEmUso * 100 / 8.0;
-                    Double volumePorcentagem = volumeEmUso * 100 / 30.0;
+                    Double ramGigas = Utils.formatarRamMibEmGib(ram);
+                    
+                    Double ramPorcentagem = ramGigas * 100 / 8;
+                    Double volumePorcentagem = volumeEmUsoLong * 100 / 238.0;
+                    
+//                    System.out.println("recebido byte " + formatarBytes(totalBytesRecebidos) + " pacote " + formatarBytes(totalBytesEnviados));
+//                    System.out.println("Ram mandado¨%s".formatted(formatarBytes(memoria.getEmUso())));
+//                    System.out.println("Ram em gigas %.2f".formatted(ramGigas));
+//                    System.out.println("Porcentagem %.2f".formatted(ramPorcentagem));
+//                    System.out.println("Volume porcentagem %.2f".formatted(volumePorcentagem));
+//                    System.out.println("Volume usado: %s".formatted(volumeEmUsoLong));
+//                    System.out.println("Volume usado %s".formatted(volumeString));
+//                    System.out.println("Volume porcentagem %.2f".formatted(Utils.formatarArmazenamento(volumeString)));
+//                    System.out.println("To vendo a ram %.2f".formatted(Utils.formatarRam(ram)));
+//                    System.out.println("Ram pegando %.2f porcentagem".formatted(ramPorcentagem));
+//                    System.out.println("Ram de verdade %s".formatted(Utils.formatarRamMibEmGib(formatarBytes(memoria.getEmUso()))));
+//                    System.out.println("Ram em gigas %s".formatted(ramEmUso));
+//                    System.out.println("cpu porcentagem %.2f".formatted(processador.getUso()));
+//                    System.out.println("Volume porcentagem %.2f volume pego %s".formatted(Utils.formatarArmazenamento(volumeString), volumeString));
 
-                    System.out.println("recebido byte " + formatarBytes(totalBytesRecebidos) + " pacote " + formatarBytes(totalBytesEnviados));
-                    System.out.println("Ram: %.2f porcentagem: %.2f , Disco: %.2f , CPU: %.2f".formatted(ramEmUso, ramPorcentagem, volumeEmUso, cpuEmUso));
+//                    System.out.println("Ram: %.2f porcentagem: %.2f , Disco: %.2f , CPU: %.2f".formatted(ramEmUso, ramPorcentagem, volumeEmUso, cpuEmUso));
 
-                    if (ramPorcentagem > totem.getAlertaRam()) {
-                        json.put("text", "%s - Totem %s - A porcentagem da RAM antigiu %.2f %%".formatted(LocalDateTime.now(), idTotem, ramPorcentagem));
+
+                    // RAM OK 000000000000000000000000000000000000000000
+                    System.out.println("Porcentagem da Ram %.2f".formatted(ramPorcentagem));
+                    System.out.println("Ram usada: %.2f".formatted(ramGigas));
+                    
+                    // VOLUME agora
+                    System.out.println("Porcentagem volume %.2f".formatted(Utils.formatarArmazenamento(volumeString)));
+                    System.out.println("Volume usado: %s".formatted(volumeString));
+                    
+                    System.out.println("Processador %.2f".formatted(processador.getUso()));
+
+                    if (ramPorcentagem > totem.getAlertaRam()) {;
+                        json.put("text", "%s - Totem %s - A porcentagem da RAM antigiu %.2f %%".formatted(Utils.obterDataFormatada(), idTotem, ramPorcentagem));
                         Slack.sendMessage(json);
                     }
-                    if (volumePorcentagem > totem.getAlertaDisco()) {
-                        json.put("text", "%s - Totem %s - A porcentagem do volume do disco antigiu %.2f %%".formatted(LocalDateTime.now(), idTotem, volumePorcentagem));
+                    if (Utils.formatarArmazenamento(volumeString) > totem.getAlertaDisco()) {
+                        json.put("text", "%s - Totem %s - A porcentagem do volume do disco antigiu %.2f %%".formatted(Utils.obterDataFormatada(), idTotem, Utils.formatarArmazenamento(volumeString)));
                         Slack.sendMessage(json);
                     }
 
-                    if (cpuEmUso > totem.getAlertaProcessador()) {
+                    if (processador.getUso() > totem.getAlertaProcessador()) {
                         qtdAlertaCpu += 1;
 
                         if (qtdAlertaCpu == 5) {
@@ -199,41 +235,15 @@ public class Main {
                 } catch (InterruptedException ex) {
                     Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
                 }
-
-                conNuvem.update("insert into [dbo].[DadoTotem] values (?, FORMAT(GETDATE(), 'HH:mm:ss') , ?, ?, ?)",
-                        idTotem, ramEmUso, volumeEmUso, String.format("%.2f", cpuEmUso));
+                Double ramGigas = Utils.formatarRamMibEmGib(ram);
                 
+//                System.out.println("Processador " + String.format("%.2f", processador.getUso()));
+                
+                conNuvem.update("insert into [dbo].[DadoTotem] values (?, CONVERT(VARCHAR(19), GETDATE()) , ?, ?, ?)",
+                        idTotem, ramGigas, volumeString, processador.getUso());
+
+//                conLocal.update("insert into dadoTotem values (null, ?, ?, ?)", ramEmUso, volumeEmUso, String.format("%.2f", cpuEmUso));
                 // insert local
-                
-//                conNuvem.update("insert into [dbo].[teste] values (CONVERT(VARCHAR(19), GETDATE(), 120))");
-//1
-//                conNuvem.update("insert into [dbo].[DadoTotem] values (1, CONVERT(VARCHAR(19), GETDATE(), 120) , ?, ?, ?)",
-//                        formatarBytes(memoria.getEmUso()), formatarBytes(volume.getDisponivel()), String.format("%.2f", processador.getUso()));
-//
-//                //2
-//                conNuvem.update("insert into [dbo].[DadoTotem] values (2, CONVERT(VARCHAR(19), GETDATE(), 120) , ?, ?, ?)",
-//                        formatarBytes(memoria.getEmUso() * 2), formatarBytes(volume.getDisponivel() * 2), String.format("%.2f", processador.getUso() * 2));
-//
-//                //3
-//                conNuvem.update("insert into [dbo].[DadoTotem] values (3, CONVERT(VARCHAR(19), GETDATE(), 120) , ?, ?, ?)",
-//                        formatarBytes(memoria.getEmUso() * 3), formatarBytes(volume.getDisponivel() * 3), String.format("%.2f", processador.getUso() * 3));
-//
-//                //4 
-//                conNuvem.update("insert into [dbo].[DadoTotem] values (4, CONVERT(VARCHAR(19), GETDATE(), 120) , ?, ?, ?)",
-//                        formatarBytes(memoria.getEmUso() * 4), formatarBytes(volume.getDisponivel() * 4), String.format("%.2f", processador.getUso() * 4));
-//
-//                //5
-//                conNuvem.update("insert into [dbo].[DadoTotem] values (5, CONVERT(VARCHAR(19), GETDATE(), 120) , ?, ?, ?)",
-//                        formatarBytes(memoria.getEmUso() * 5), formatarBytes(volume.getDisponivel() * 5), String.format("%.2f", processador.getUso() * 5));
-//
-//                //6
-//                conNuvem.update("insert into [dbo].[DadoTotem] values (6, CONVERT(VARCHAR(19), GETDATE(), 120) , ?, ?, ?)",
-//                        formatarBytes(memoria.getEmUso() * 6), formatarBytes(volume.getDisponivel() * 6), String.format("%.2f", processador.getUso() * 6));
-
-//conLocal.update("insert into DadoTotem(dataHora, qtdRam, qtdTotalDisco, qtdProcessador, qtdFaltaDisco, qtdLeituraDisco, qtdPacoteEnviado,";
-//                + " qtdPacoteRecebido) values (now() , ?, ?, ?, ?, ?, ?, ?)",
-//                formatarBytes(memoria.getEmUso()), formatarBytes(disco.getTamanho()), String.format("%.2f", processador.getUso()),
-//                formatarBytes(volume.getDisponivel()), formatarBytes(disco.getLeituras()), formatarBytes(rede.getBytesEnviados()), 0);
             }
         },
                 0, 5000);

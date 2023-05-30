@@ -22,7 +22,8 @@ public class Totem {
         Double number = Double.parseDouble(numberString.replace(",", "."));
         return number;
     }
-
+  
+    
     public String getNumeroSocial() {
         return numeroSocial;
     }

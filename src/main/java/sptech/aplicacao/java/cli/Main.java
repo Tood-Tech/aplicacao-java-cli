@@ -14,7 +14,9 @@ import com.github.britooo.looca.api.group.rede.Rede;
 import com.github.britooo.looca.api.group.rede.RedeInterface;
 import com.github.britooo.looca.api.group.rede.RedeInterfaceGroup;
 import static com.github.britooo.looca.api.util.Conversor.formatarBytes;
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -51,7 +53,7 @@ public class Main {
                 SqlServer conexao = new SqlServer();
                 JdbcTemplate conNuvem = conexao.getConexaoDoBanco();
                 conNuvem.update("update [dbo].[Totem] set ativo = 'false' where idTotem = ?;", idTotem);
-                json.put("text", "%s - Programa foi encerrado no totem %s.".formatted(Utils.obterDataFormatada(), idTotem));
+                json.put("text", "%s - Totem %s - Programa foi encerrado".formatted(Utils.obterDataFormatada(), idTotem));
                 try {
                     Slack.sendMessage(json);
                 } catch (IOException ex) {
@@ -118,7 +120,7 @@ public class Main {
                 new BeanPropertyRowMapper<>(Totem.class), idTotem);
 
         // Iniciando aplicação
-        json.put("text", "%s - Programa foi iniciado no totem %s.".formatted(Utils.obterDataFormatada(), idTotem));
+        json.put("text", "%s - Totem %s - Programa foi iniciado".formatted(Utils.obterDataFormatada(), idTotem));
         conNuvem.update("update [dbo].[Totem] set ativo = 'true' where idTotem = ?;", idTotem);
         Slack.sendMessage(json);
 
@@ -151,21 +153,15 @@ public class Main {
 
             @Override
             public void run() {
-                // RAM Falta Porcentagem
-//                Double ramEmUso = Totem.formatar(formatarBytes(memoria.getEmUso()));
+                    Totem totemAtualiza = conNuvem.queryForObject("SELECT * FROM [dbo].[Totem] where idTotem = ?;",
+                            new BeanPropertyRowMapper<>(Totem.class), idTotem);
 
-                // aq Oh
+
                 String ram = formatarBytes(memoria.getEmUso());
 
-                // Disco Falta Porcentagem // armazenamento usando
-//               Double volumeEmUso = Totem.formatar(formatarBytes(volume.getTotal())) - Totem.formatar(formatarBytes(volume.getDisponivel()));
                 Long volumeEmUsoLong = volume.getTotal() - volume.getDisponivel();
                 String volumeString = formatarBytes(volumeEmUsoLong);
 
-                // Processador Já vem em porcentagem
-//                Double cpuEmUso = processador.getUso();
-
-                // tirar dps talvez
                 long totalBytesRecebidos = redeInterfaces.stream()
                         .mapToLong(RedeInterface::getBytesRecebidos)
                         .sum();
@@ -179,33 +175,33 @@ public class Main {
                 try {
 
                     Double ramGigas = Utils.formatarRamMibEmGib(ram);
-                    
+
                     Double ramPorcentagem = ramGigas * 100 / 8;
 //                    Double volumePorcentagem = volumeEmUsoLong * 100 / 30.0;
 
                     System.out.println("Porcentagem da Ram %.2f".formatted(ramPorcentagem));
                     System.out.println("Ram usada: %.2f".formatted(ramGigas));
-                    
+
                     // VOLUME agora
                     System.out.println("Porcentagem volume %.2f".formatted(Utils.formatarArmazenamento(volumeString)));
                     System.out.println("Volume usado: %s".formatted(volumeString));
-                    
+
                     System.out.println("Processador %.2f".formatted(processador.getUso()));
 
-                    if (ramPorcentagem > totem.getAlertaRam()) {;
+                    if (ramPorcentagem > totemAtualiza.getAlertaRam()) {;
                         json.put("text", "%s - Totem %s - A porcentagem da RAM antigiu %.2f %%".formatted(Utils.obterDataFormatada(), idTotem, ramPorcentagem));
                         Slack.sendMessage(json);
                     }
-                    if (Utils.formatarArmazenamento(volumeString) > totem.getAlertaDisco()) {
+                    if (Utils.formatarArmazenamento(volumeString) > totemAtualiza.getAlertaDisco()) {
                         json.put("text", "%s - Totem %s - A porcentagem do volume do disco antigiu %.2f %%".formatted(Utils.obterDataFormatada(), idTotem, Utils.formatarArmazenamento(volumeString)));
                         Slack.sendMessage(json);
                     }
 
-                    if (processador.getUso() > totem.getAlertaProcessador()) {
+                    if (processador.getUso() > totemAtualiza.getAlertaProcessador()) {
                         qtdAlertaCpu += 1;
 
                         if (qtdAlertaCpu == 5) {
-                            json.put("text", "%s - Totem %s - Por 25s a porcentagem da cpu passou do limite de %d %%".formatted(Utils.obterDataFormatada(), idTotem, totem.getAlertaProcessador()));
+                            json.put("text", "%s - Totem %s - Por 25s a porcentagem da cpu passou do limite de %d %%".formatted(Utils.obterDataFormatada(), idTotem, totemAtualiza.getAlertaProcessador()));
                             Slack.sendMessage(json);
                             qtdAlertaCpu = 0;
                         }
@@ -217,9 +213,42 @@ public class Main {
                     Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
                 }
                 Double ramGigas = Utils.formatarRamMibEmGib(ram);
+                Double ramPorcentagem = ramGigas * 100 / 8;
                 
-//                System.out.println("Processador " + String.format("%.2f", processador.getUso()));
-                
+                // REINICIAR
+                if (totemAtualiza.getRebootProcessador() > processador.getUso() && totemAtualiza.getRebootRam() > ramPorcentagem) {
+                    try {
+                        conNuvem.update("update [dbo].[Totem] set ativo = 'false' where idTotem = ?;", idTotem);
+//                        json.put("text", "%s - Totem %s - Foi reiniciado".formatted(Utils.obterDataFormatada(), idTotem));
+//                        Slack.sendMessage(json);
+
+                        // Comando que você deseja executar
+                        String comando = "sudo reboot";
+
+                        // Cria o ProcessBuilder com o comando
+                        ProcessBuilder pb = new ProcessBuilder("bash", "-c", comando);
+
+                        // Redireciona a saída de erro para a saída padrão
+                        pb.redirectErrorStream(true);
+
+                        // Inicia o processo
+                        Process processo = pb.start();
+
+                        // Obtém a saída do processo
+                        BufferedReader reader = new BufferedReader(new InputStreamReader(processo.getInputStream()));
+                        String linha;
+                        while ((linha = reader.readLine()) != null) {
+                            System.out.println(linha);
+                        }
+
+                        // Aguarda a finalização do processo
+                        int status = processo.waitFor();
+                        System.out.println("O comando foi executado com sucesso. Código de saída: " + status);
+                    } catch (IOException | InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+
                 conNuvem.update("insert into [dbo].[DadoTotem] values (?, CONVERT(VARCHAR(19), GETDATE()) , ?, ?, ?)",
                         idTotem, ramGigas, volumeString, processador.getUso());
 
@@ -227,6 +256,7 @@ public class Main {
                 // insert local
             }
         },
-                0, 5000);
+
+                 0, 5000);
     }
 }

@@ -16,6 +16,8 @@ public class Totem {
     private Integer alertaRam;
     private String disco;
     private Integer alertaDisco;
+    private Integer rebootProcessador;
+    private Integer rebootRam;
     
     public static Double formatar(String teste) {
         String numberString = teste.replaceAll("[^\\d,.]", "");
@@ -80,8 +82,24 @@ public class Totem {
         this.alertaDisco = alertaDisco;
     }
 
+    public Integer getRebootProcessador() {
+        return rebootProcessador;
+    }
+
+    public void setRebootProcessador(Integer rebootProcessador) {
+        this.rebootProcessador = rebootProcessador;
+    }
+
+    public Integer getRebootRam() {
+        return rebootRam;
+    }
+
+    public void setRebootRam(Integer rebootRam) {
+        this.rebootRam = rebootRam;
+    }
+
     @Override
     public String toString() {
-        return "Totem{" + "numeroSocial=" + numeroSocial + ", processador=" + processador + ", alertaProcessador=" + alertaProcessador + ", ram=" + ram + ", alertaRam=" + alertaRam + ", disco=" + disco + ", alertaDisco=" + alertaDisco + '}';
-    }    
+        return "Totem{" + "numeroSocial=" + numeroSocial + ", processador=" + processador + ", alertaProcessador=" + alertaProcessador + ", ram=" + ram + ", alertaRam=" + alertaRam + ", disco=" + disco + ", alertaDisco=" + alertaDisco + ", rebootProcessador=" + rebootProcessador + ", rebootRam=" + rebootRam + '}';
+    }
 }

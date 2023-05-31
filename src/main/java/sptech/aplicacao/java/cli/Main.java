@@ -162,12 +162,12 @@ public class Main {
                 Long volumeEmUsoLong = volume.getTotal() - volume.getDisponivel();
                 String volumeString = formatarBytes(volumeEmUsoLong);
 
-                long totalBytesRecebidos = redeInterfaces.stream()
-                        .mapToLong(RedeInterface::getBytesRecebidos)
+                long totalPacotesRecebidos = redeInterfaces.stream()
+                        .mapToLong(RedeInterface::getPacotesRecebidos)
                         .sum();
 
-                long totalBytesEnviados = redeInterfaces.stream()
-                        .mapToLong(RedeInterface::getBytesEnviados)
+                long totalPacotesEnviados = redeInterfaces.stream()
+                        .mapToLong(RedeInterface::getPacotesEnviados)
                         .sum();
 
                 // Rede 
@@ -249,8 +249,8 @@ public class Main {
                     }
                 }
 
-                conNuvem.update("insert into [dbo].[DadoTotem] values (?, CONVERT(VARCHAR(19), GETDATE()) , ?, ?, ?)",
-                        idTotem, ramGigas, volumeString, processador.getUso());
+                conNuvem.update("insert into [dbo].[DadoTotem] values (?, CONVERT(VARCHAR(19), GETDATE()) , ?, ?, ?, ?, ?)",
+                        idTotem, ramGigas, volumeString, processador.getUso(), formatarBytes(totalPacotesEnviados), formatarBytes(totalPacotesRecebidos));
 
                 conLocal.update("insert into dadoTotem values (null, now(), ?, ?, ?)", ramGigas, volumeString, processador.getUso());
                 // insert local

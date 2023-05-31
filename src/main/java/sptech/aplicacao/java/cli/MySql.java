@@ -12,7 +12,8 @@ import org.springframework.jdbc.core.JdbcTemplate;
  * @author samuc
  */
 public class MySql {
-        private JdbcTemplate conexaoDoBanco;
+
+    private JdbcTemplate conexaoDoBanco;
 
     public MySql() {
         BasicDataSource dataSource = new BasicDataSource();
@@ -20,8 +21,7 @@ public class MySql {
         ////        MYSQL;
         dataSource.setDriverClassName("com.mysql.cj.jdbc.Driver");
         dataSource.setUrl("jdbc:mysql://localhost:3306/ToodDatabase");
-//      dataSource.setUsername("root");
-        dataSource.setUsername("aluno");
+        dataSource.setUsername("root");
         dataSource.setPassword("sptech");
 
         this.conexaoDoBanco = new JdbcTemplate(dataSource);

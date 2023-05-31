@@ -223,7 +223,7 @@ public class Main {
                 conNuvem.update("insert into [dbo].[DadoTotem] values (?, CONVERT(VARCHAR(19), GETDATE()) , ?, ?, ?)",
                         idTotem, ramGigas, volumeString, processador.getUso());
 
-//                conLocal.update("insert into dadoTotem values (null, ?, ?, ?)", ramEmUso, volumeEmUso, String.format("%.2f", cpuEmUso));
+                conLocal.update("insert into dadoTotem values (null, now(), ?, ?, ?)", ramGigas, volumeString, processador.getUso());
                 // insert local
             }
         },
